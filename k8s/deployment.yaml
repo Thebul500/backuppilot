@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backuppilot
+  labels:
+    app: backuppilot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backuppilot
+  template:
+    metadata:
+      labels:
+        app: backuppilot
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: backuppilot
+          image: backuppilot:latest
+          command: ["backuppilot", "check"]
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          volumeMounts:
+            - name: config
+              mountPath: /home/backuppilot/.backuppilot
+            - name: docker-backups
+              mountPath: /backups/docker
+              readOnly: true
+            - name: opnsense-backups
+              mountPath: /backups/opnsense
+              readOnly: true
+          env:
+            - name: SIGNAL_API_URL
+              valueFrom:
+                secretKeyRef:
+                  name: backuppilot-signal
+                  key: api-url
+                  optional: true
+            - name: SIGNAL_SENDER
+              valueFrom:
+                secretKeyRef:
+                  name: backuppilot-signal
+                  key: sender
+                  optional: true
+            - name: SIGNAL_RECIPIENT
+              valueFrom:
+                secretKeyRef:
+                  name: backuppilot-signal
+                  key: recipient
+                  optional: true
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: backuppilot-config
+        - name: docker-backups
+          hostPath:
+            path: /backups/docker
+            type: DirectoryOrCreate
+        - name: opnsense-backups
+          hostPath:
+            path: /backups/opnsense
+            type: DirectoryOrCreate
+      restartPolicy: Always

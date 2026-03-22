@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "backuppilot"
+version = "1.0.0"
+description = "Backup lifecycle manager for home infrastructure. Validates Docker, OPNsense, and GDrive backups."
+requires-python = ">=3.11"
+dependencies = [
+    "click>=8.1",
+    "defusedxml>=0.7",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+server = [
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+]
+dev = [
+    "mypy>=1.0",
+    "types-PyYAML>=6.0",
+    "pytest>=7.0",
+    "ruff>=0.1",
+]
+
+[project.scripts]
+backuppilot = "backuppilot.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"
+markers = [
+    "integration: end-to-end tests with real file I/O and database operations",
+]
+
+[tool.coverage.run]
+source = ["backuppilot"]
+
+[tool.coverage.report]
+fail_under = 100
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100

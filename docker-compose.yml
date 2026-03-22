@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  backuppilot:
+    build: .
+    container_name: backuppilot
+    restart: "no"
+    volumes:
+      - config:/home/backuppilot/.backuppilot
+      # Mount backup directories read-only for validation
+      - ${DOCKER_BACKUP_DIR:-/path/to/docker/backups}:/backups/docker:ro
+      - ${OPNSENSE_BACKUP_DIR:-/path/to/opnsense/backups}:/backups/opnsense:ro
+    environment:
+      - SIGNAL_API_URL=${SIGNAL_API_URL:-}
+      - SIGNAL_SENDER=${SIGNAL_SENDER:-}
+      - SIGNAL_RECIPIENT=${SIGNAL_RECIPIENT:-}
+    entrypoint: ["backuppilot"]
+    command: ["check"]
+
+volumes:
+  config:
+    driver: local
